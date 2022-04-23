@@ -3,19 +3,14 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 
-# constants (may be change to input arguments later)
-SUPERPIXEL_SIZE = 3
-N_COLOURS = 8
-
-
 # get palette colours using k-mean
-def getPalette( image ):
+def getPalette( image, nColours ):
     # reshape image into 1-D array of pixels with input channels
     pixels = image.copy()
     pixels = image.reshape( ( -1, image.shape[2] ) )
 
     # k-mean clustering
-    km = KMeans( n_clusters = N_COLOURS )
+    km = KMeans( n_clusters = nColours )
     km.fit( pixels )
 
     # put palette colours into an array
@@ -57,13 +52,13 @@ def smoothenImage( image ):
 
 
 # pixelize by downsizing and upscaling
-def pixelateImage( image ):
+def pixelateImage( image, superpixelSize ):
     # get image dimention
     height, width, _ = image.shape
 
     # downsize
-    downWidth = width // SUPERPIXEL_SIZE
-    downHeight = height // SUPERPIXEL_SIZE
+    downWidth = width // superpixelSize 
+    downHeight = height // superpixelSize 
     downImage = cv2.resize( image, ( downWidth, downHeight ), interpolation = cv2.INTER_LINEAR  )
 
     # upscale
@@ -73,10 +68,10 @@ def pixelateImage( image ):
 
 
 # main execution
-def pixelize( image ):
-    colours, pixelMap = getPalette( image )
+def pixelize( image, nColours, superpixelSize ):
+    colours, pixelMap = getPalette( image, nColours )
     lessColourImage = reduceColour( image, colours, pixelMap )
     blurredImage = smoothenImage( lessColourImage )
-    pixelizedImage = pixelateImage( blurredImage )
+    pixelizedImage = pixelateImage( blurredImage, superpixelSize )
 
     return pixelizedImage
