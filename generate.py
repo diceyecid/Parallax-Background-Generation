@@ -40,7 +40,7 @@ def getArguments():
             help = 'the height of resulting image (setting this will ignore \'output_height_factor\')' )
     
     parser.add_argument( '--n_colors', type = int, default = 8,
-            help = 'the number of colours that image(s) reduce to' )
+            help = 'the number of dominate colours to be extracted as a palette for the image(s)' )
     
     parser.add_argument( '--superpixel_size', type = int, default = 3,
             help = 'the size of a \'pixel\' after pixelization' )
@@ -51,7 +51,7 @@ def getArguments():
     parser.add_argument( '--patch_factor', type = int, default = 8,
             help = 'the factor to determine size of patches used during generation' )
     
-    parser.add_argument( '--generation_mode', type = int, default = 2,
+    parser.add_argument( '--generation_mode', type = int, default = 2, choices = [ 1, 2, 3 ],
             help =  'the mode for texture generation; ' +
                     '1 for global subpatch best matching; ' + 
                     '2 for row-by-row subpatch best matching; ' +
