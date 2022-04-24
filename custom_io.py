@@ -24,12 +24,9 @@ def show_img(im, name='image'):
 def write_img(im, fn):
     cv2.imwrite(fn, im.astype(np.uint8))
 
-def increment_status_message(counter):
+def increment_status_message(current, max):
     stdout.write('\r')
-    stdout.write("interation number %i" % (counter))
-    stdout.flush()
-    counter += 1
-    return counter
+    stdout.write("Generation Progress: %i%%" % (current/max*100))
 
 def debug_out(string, *argv):
     if DEBUG_OUT:

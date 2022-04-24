@@ -4,14 +4,14 @@ import time
 import numpy as np
 import cv2
 
-from graph import USE_ALPHA, Graph
+from graph import Graph
 from custom_io import debug_out, increment_status_message
 from graphEnums import GenDirection, GenMethod
 
 def main():
     path_in = sys.argv[1] if len(sys.argv) > 1 else quit()
     path_out = sys.argv[2] if len(sys.argv) > 2 else "./"
-    pattern = cv2.imread(path_in, cv2.IMREAD_UNCHANGED) if USE_ALPHA else cv2.imread(path_in)
+    pattern = cv2.imread(path_in, cv2.IMREAD_UNCHANGED)
     h, w = pattern.shape[:2]
 
     direction = GenDirection(int(sys.argv[3])) if len(sys.argv) > 3 else GenDirection.HORIZONAL
@@ -40,25 +40,24 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
         return image_in
 
     image_in = image_in.astype(np.int32)
-    h_in, w_in = image_in.shape[:2]
+    h_in, w_in, channels = image_in.shape
     PATCH_H_RATIO = 1 if direction is GenDirection.HORIZONAL else patchFactor
     PATCH_W_RATIO = patchFactor
     sub_patch_size = (h_in//PATCH_H_RATIO, w_in//PATCH_W_RATIO)
 
-    g = Graph(h_out, w_out)
+    g = Graph(h_out, w_out, channels)
     max = g.w*g.h
-    counter = 0
+    sys.stdout.write('\n')
     debug_out("channels in: %i, channels out: %i\n", image_in.shape[2], g.canvas.shape[2])
 
     # Generate Texture in Random Order using Sub Patches
     if mode is GenMethod.SUBBLOCK_RANDOM:
         g.init_graph(image_in, new_pattern_size=sub_patch_size)
         while g.filled.sum() < max:
-            counter = increment_status_message(counter)
+            increment_status_message(g.filled.sum(), max)
             g.blend(
                 g.match_patch(
                     image_in, mode='opt_sub', k=1, new_pattern_size=sub_patch_size))
-        sys.stdout.write('\n')
 
     # Generate Texture Row-by-Row using Sub Patches (Preferred)
     elif mode is GenMethod.SUBBLOCK_ROW:
@@ -67,7 +66,7 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
         local_k = 100
         while g.filled.sum() < max:
             while g.filled.sum() < (start_row+(h_in//PATCH_H_RATIO))*g.w:
-                counter = increment_status_message(counter)
+                increment_status_message(g.filled.sum(), max)
                 g.blend(
                     g.match_patch(
                         image_in, mode='opt_sub', k=local_k, row=start_row, new_pattern_size=sub_patch_size))
@@ -78,7 +77,6 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
                     image_in, mode='opt_sub', k=local_k, new_pattern_size=sub_patch_size)
                 g.blend(pattern_info) 
                 start_row = pattern_info[0]
-        sys.stdout.write('\n')
 
     # Generate Texture Row-by-Row using Full Size Patches
     elif mode is GenMethod.GLOBAL_ROW:
@@ -87,7 +85,7 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
         local_k = 10
         while g.filled.sum() < max:
             while g.filled.sum() < (start_row+h_in)*g.w:
-                counter = increment_status_message(counter)
+                increment_status_message(g.filled.sum(), max)
                 g.blend(
                     g.match_patch(
                         image_in, mode='opt_whole', k=local_k, row=start_row, new_pattern_size=sub_patch_size))
@@ -98,8 +96,9 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
                     image_in, mode='opt_whole', k=local_k)
                 g.blend(pattern_info)
                 start_row = pattern_info[0]
-        sys.stdout.write('\n')
 
+    increment_status_message(g.filled.sum(), max)
+    sys.stdout.write('\n')
     return g.canvas.astype(np.uint8)
     
 
