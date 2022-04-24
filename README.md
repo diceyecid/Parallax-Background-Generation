@@ -18,7 +18,7 @@ A parallax background generation method for 2D side-scrollers.
    source ./venv/bin/activate
    ```
 
-## Useage
+## Usage
 ### Parallax Background Generation
 ### Graphcut Texture Generation
 To use the texture generation portion of the pipeline by itself, `graphCut.py` can be called directly with the following signature.
