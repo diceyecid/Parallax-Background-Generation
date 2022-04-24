@@ -6,8 +6,6 @@ import numpy as np
 from custom_io import debug_out, show_img, write_img
 from viz import plot_graph_2d
 
-USE_ALPHA = True
-CHANNELS = 4 if USE_ALPHA else 3
 CHANNELS_RGB = 3
 CHANNEL_SLICES = [
     slice(0, CHANNELS_RGB), \
@@ -19,12 +17,12 @@ CHANNEL_SLICES = [
 INF = 1.0e8
 
 class Graph():
-    def __init__(self, h, w):
+    def __init__(self, h, w, channels):
         self.consider_old_seams = True  # whether consider old seams
         self.grad_energy = True  # whether introduce grad into energy func
-        self.w, self.h = w, h
+        self.w, self.h, self.channels = w, h, channels
         self.filled = np.zeros((self.h, self.w), np.int32)
-        self.canvas = np.zeros((self.h, self.w, CHANNELS), np.int32)
+        self.canvas = np.zeros((self.h, self.w, channels), np.int32)
         self.graph = maxflow.Graph[float]()
         self.node_ids = self.graph.add_grid_nodes((self.h, self.w))
         self.vertical_seams = np.zeros((self.h-1, self.w, CHANNELS_RGB*4+1), np.float64)
@@ -63,7 +61,7 @@ class Graph():
 
         # FFT for speed up
         term3 = cv2.filter2D(canvas_with_mask, -1, new_value, anchor=(0, 0))[0:y, 0:x].sum(axis=2)
-        term1 = cv2.filter2D(np.tile(mask, (1, 1, CHANNELS)), -1, np.power(new_value, 2), anchor=(0, 0))[0:y, 0:x].sum(axis=2)
+        term1 = cv2.filter2D(np.tile(mask, (1, 1, self.channels)), -1, np.power(new_value, 2), anchor=(0, 0))[0:y, 0:x].sum(axis=2)
  
         # summed table for mask count calculation speed up
         summed_table_mask = np.zeros((self.h+1, self.w+1), np.float64)
@@ -240,7 +238,7 @@ class Graph():
                     p_table_flatten = (
                         mask_count_flatten == min_mask_count).astype(np.float32)
                 else:
-                    sigma = np.std(pattern.reshape(-1, CHANNELS), axis=0)
+                    sigma = np.std(pattern.reshape(-1, self.channels), axis=0)
                     sigma_sqr = (sigma*sigma).sum()
                     p_table_flatten = -cost_table_flatten*k/sigma_sqr
                     p_table_flatten = np.exp(p_table_flatten)
@@ -341,8 +339,8 @@ class Graph():
 
 if __name__ == '__main__':   
     g = Graph(10, 10)
-    g.init_graph(np.ones((5, 5, CHANNELS), np.int32)*2) 
-    nodes, edges, tedges = g.create_graph((2, 2, 5, 5, np.zeros((5, 5, CHANNELS)).astype(np.int32)))
+    g.init_graph(np.ones((5, 5, self.channels), np.int32)*2) 
+    nodes, edges, tedges = g.create_graph((2, 2, 5, 5, np.zeros((5, 5, self.channels)).astype(np.int32)))
     graph = maxflow.Graph[float]()
     nodes = graph.add_grid_nodes((g.h, g.w))
     for edge in edges:
