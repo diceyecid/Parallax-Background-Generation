@@ -63,7 +63,7 @@ class Graph():
 
         # FFT for speed up
         term3 = cv2.filter2D(canvas_with_mask, -1, new_value, anchor=(0, 0))[0:y, 0:x].sum(axis=2)
-        term1 = cv2.filter2D(np.tile(mask, (1, 1, 3)), -1, np.power(new_value, 2), anchor=(0, 0))[0:y, 0:x].sum(axis=2)
+        term1 = cv2.filter2D(np.tile(mask, (1, 1, CHANNELS)), -1, np.power(new_value, 2), anchor=(0, 0))[0:y, 0:x].sum(axis=2)
  
         # summed table for mask count calculation speed up
         summed_table_mask = np.zeros((self.h+1, self.w+1), np.float64)
@@ -240,7 +240,7 @@ class Graph():
                     p_table_flatten = (
                         mask_count_flatten == min_mask_count).astype(np.float32)
                 else:
-                    sigma = np.std(pattern.reshape(-1, 3), axis=0)
+                    sigma = np.std(pattern.reshape(-1, CHANNELS), axis=0)
                     sigma_sqr = (sigma*sigma).sum()
                     p_table_flatten = -cost_table_flatten*k/sigma_sqr
                     p_table_flatten = np.exp(p_table_flatten)
