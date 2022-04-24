@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
+from recolourGUI import startGUI
 
 
 # get palette colours using k-mean
@@ -68,8 +69,12 @@ def pixelateImage( image, superpixelSize ):
 
 
 # main execution
-def pixelize( image, nColours, superpixelSize ):
+def pixelize( image, nColours, recolour, superpixelSize ):
     colours, pixelMap = getPalette( image, nColours )
+
+    if recolour:
+        colours = startGUI( image, colours )
+
     lessColourImage = reduceColour( image, colours, pixelMap )
     blurredImage = smoothenImage( lessColourImage )
     pixelizedImage = pixelateImage( blurredImage, superpixelSize )

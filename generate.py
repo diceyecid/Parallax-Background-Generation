@@ -41,6 +41,9 @@ def getArguments():
     
     parser.add_argument( '--n_colors', type = int, default = 8,
             help = 'the number of dominate colours to be extracted as a palette for the image(s)' )
+
+    parser.add_argument( '--recolor', action = 'store_true', default = False, 
+            help = 'the option to turn on palette recolouring for the image(s)' )
     
     parser.add_argument( '--superpixel_size', type = int, default = 3,
             help = 'the size of a \'pixel\' after pixelization' )
@@ -123,7 +126,7 @@ def main():
     progressBar = tqdm( zip( images, imageSubpaths ), desc = 'Pixelizing', total = len( images ) )
     for im, sp in progressBar:
         # pixelize image
-        result = pixelize( im, args.n_colors, args.superpixel_size )
+        result = pixelize( im, args.n_colors, args.recolor, args.superpixel_size )
 
         # texture generation
         outputWidth, outputHeight = getOutputSize( im, args )
