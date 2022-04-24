@@ -3,7 +3,7 @@ import maxflow
 import cv2
 import numpy as np
 
-from custom_io import read_img, show_img, write_img
+from custom_io import debug_out, show_img, write_img
 from viz import plot_graph_2d
 
 INF = 1.0e8
@@ -19,7 +19,6 @@ class Graph():
         self.node_ids = self.graph.add_grid_nodes((self.h, self.w))
         self.vertical_seams = np.zeros((self.h-1, self.w, 13), np.float64)
         self.horizontal_seams = np.zeros((self.h, self.w-1, 13), np.float64)
-        # self.best_opt = []
 
     # start from left-top corner
     def init_graph(self, new_patch, new_pattern_size=None):
@@ -33,7 +32,6 @@ class Graph():
         new_h, new_w = new_patch.shape[:2]
         self.filled[:new_h, :new_w] = 1
         self.canvas[:new_h, :new_w] = new_patch
-        # self.best_opt.append((0, 0))
 
     # matching cost, fast with summed table and FFT
     def fast_cost_fn(self, new_patch, row_range, col_range):
@@ -71,13 +69,6 @@ class Graph():
         cost_table = cost_table.astype(np.float64)
         zero_mask = mask_count == 0
         not_zero_mask = np.logical_not(zero_mask)
-        # low_overlap_mask = mask_count < int((new_h*new_w)*0.2)
-        # high_overlap_mask = mask_count > int((new_h*new_w)*0.5)
-        # extreme_overlap_mask = np.logical_or(low_overlap_mask, high_overlap_mask)
-        # extreme_overlap_mask = np.logical_and(extreme_overlap_mask, not_zero_mask)
-        # normal_overlap_mask = np.logical_and(np.logical_not(extreme_overlap_mask), not_zero_mask).astype(np.float64)
-        # cost_table = INF*zero_mask+(cost_table/(mask_count+1e-8)) \
-        #     *normal_overlap_mask+mask_count.astype(np.float64)*LARGE*extreme_overlap_mask
 
         cost_table = INF*zero_mask+(cost_table/(mask_count+1e-8))*not_zero_mask
         return cost_table, mask_count
@@ -92,8 +83,6 @@ class Graph():
         overlap_cost = np.power(canvas_with_mask, 2).astype(np.float64).sum()
         if overlap_count == 0:
             return INF, 0
-        # if overlap_count > int((new_h*new_w)*0.9) or overlap_count < int((new_h*new_w)*0.2):
-            # return overlap_count * INF, overlap_count
         overlap_cost /= overlap_count 
         return overlap_cost, overlap_count
 
@@ -125,7 +114,7 @@ class Graph():
             w /= (grad_s+grad_t)*2+eps
         return w
         
-    def create_graph(self, old_patch, new_patch):
+    def create_graph(self, new_patch):
         new_t, new_l, new_h, new_w, new_value = new_patch
         new_r, new_b = new_l + new_w, new_t + new_h
         src_tedge_count = 0
@@ -201,12 +190,8 @@ class Graph():
                         row_idx == new_b-1 and row_idx < self.h-1 and self.filled[row_idx+1, col_idx] or \
                         col_idx == new_l and col_idx > 0 and self.filled[row_idx, col_idx-1] or \
                         col_idx == new_r-1 and col_idx < self.w-1 and self.filled[row_idx, col_idx+1]:
-                    # if src_tedge_count == sink_tedge_count // 2:
-                    #     continue
                     tedges.append((self.node_ids[row_idx][col_idx], np.inf, 0))
                     sink_tedge_count += 1
-        # if src_tedge_count == 0:
-        #     tedges.append((self.node_ids[(new_t+new_b)//2][(new_l+new_r)//2], 0, np.inf)) 
         return nodes, edges, tedges
 
     def match_patch(self, pattern, row=-1, col=-1, mode='random', k=10, new_pattern_size=None):
@@ -221,16 +206,14 @@ class Graph():
         h, w = pattern.shape[:2]
         max_overlap = max(int(h*w*0.7), h*w-self.h*self.w+self.filled.sum())
         min_overlap = int(h*w*0.1)
-        min_cost = np.inf
         if row == -1 or col == -1:
             if mode == 'random':
                 row = np.random.randint(0, self.h-h+1) if row == -1 else row
                 col = np.random.randint(0, self.w-w+1) if col == -1 else col
             elif mode == 'opt_whole' or mode == 'opt_sub':
-                row_range = list(range(0, self.h-h+1, 1)) #if row == -1 else [row]
-                col_range = list(range(0, self.w-w+1, 1)) #if col == -1 else [col]
+                row_range = list(range(0, self.h-h+1, 1))
+                col_range = list(range(0, self.w-w+1, 1))
                 cost_table, mask_count = self.fast_cost_fn(pattern, row_range, col_range)
-                # min_idx = cost_table.reshape((-1)).argmin()
                 cost_table_flatten = cost_table.reshape((-1))
                 mask_count_flatten = mask_count.reshape((-1))
                 valid_mask = (mask_count_flatten <= max_overlap) * \
@@ -274,12 +257,6 @@ class Graph():
                         break
                 row = min_idx // len(col_range)
                 col = min_idx % len(col_range)
-                # self.best_opt.append((row, col))
-
-                # time for patch matching before speed up
-                # for row_idx in range(0, self.h-h, 1):
-                #     for col_idx in range(0, self.w-w, 1):
-                #         cost = self.cost_fn((row_idx, col_idx, h, w, pattern))
             else:
                 raise NotImplementedError()
 
@@ -288,10 +265,13 @@ class Graph():
     # blend new patch and existing
     def blend(self, pattern_info):
         row, col, h, w, pattern = pattern_info
-        nodes, edges, tedges = self.create_graph(None, (row, col, h, w, pattern))
+        nodes, edges, tedges = self.create_graph((row, col, h, w, pattern))
         graph = maxflow.Graph[float]()
         final_nodes = graph.add_nodes(len(nodes)+self.h*self.w)
         edge_weights = np.zeros((self.h, self.w, 2))
+
+        debug_out("pattern channels: %i, graph channels: %i\n", pattern.shape[2], self.canvas.shape[2])
+
         for edge in edges:
             graph.add_edge(edge[0], edge[1], edge[2], edge[2])
             row_, col_ = edge[0]//self.w, edge[0]%self.w
@@ -301,53 +281,44 @@ class Graph():
                 edge_weights[row_, col_, 0] = edge[2]
         for tedge in tedges:
             graph.add_tedge(tedge[0], tedge[1], tedge[2])
-        flow = graph.maxflow()
+
         sgm = graph.get_grid_segments(self.node_ids)
         for row_idx in range(row, row+h):
             for col_idx in range(col, col+w):
 
                 # update the old seams
                 if self.consider_old_seams:
-                    if row_idx < row+h-1 and self.filled[row_idx, col_idx] and \
-                        self.filled[row_idx+1, col_idx]:
+                    debug_out("pattern channels: %i, graph channels: %i\n", pattern.shape[2], self.canvas.shape[2])
+                    if row_idx < row+h-1 and self.filled[row_idx, col_idx] and self.filled[row_idx+1, col_idx]:
                         if not sgm[row_idx, col_idx] and sgm[row_idx+1, col_idx]:
-                            self.vertical_seams[row_idx][col_idx][0] = \
-                                edge_weights[row_idx][col_idx][0]
-                            self.vertical_seams[row_idx][col_idx][1:] = \
-                                np.concatenate([
+                            self.vertical_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][0]
+                            self.vertical_seams[row_idx][col_idx][1:] = np.concatenate([
                                     self.canvas[row_idx, col_idx],
                                     self.canvas[row_idx+1, col_idx],
                                     pattern[row_idx-row, col_idx-col],
                                     pattern[row_idx-row+1, col_idx-col]
                                 ], axis=-1)
                         if sgm[row_idx, col_idx] and not sgm[row_idx+1, col_idx]:
-                            self.vertical_seams[row_idx][col_idx][0] = \
-                                edge_weights[row_idx][col_idx][0]
-                            self.vertical_seams[row_idx][col_idx][1:] = \
-                                np.concatenate([
+                            self.vertical_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][0]
+                            self.vertical_seams[row_idx][col_idx][1:] = np.concatenate([
                                     pattern[row_idx-row, col_idx-col],
                                     pattern[row_idx-row+1, col_idx-col],
                                     self.canvas[row_idx, col_idx],
                                     self.canvas[row_idx+1, col_idx],
                                 ], axis=-1)
                     
-                    if col_idx < col+w-1 and self.filled[row_idx, col_idx] and \
-                        self.filled[row_idx, col_idx+1]:
+                    if col_idx < col+w-1 and self.filled[row_idx, col_idx] and self.filled[row_idx, col_idx+1]:
                         if not sgm[row_idx, col_idx] and sgm[row_idx, col_idx+1]:
-                            self.horizontal_seams[row_idx][col_idx][0] = \
-                                edge_weights[row_idx][col_idx][1]
-                            self.horizontal_seams[row_idx][col_idx][1:] = \
-                                np.concatenate([
+                            self.horizontal_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][1]
+                            self.horizontal_seams[row_idx][col_idx][1:] = np.concatenate([
                                     self.canvas[row_idx, col_idx],
                                     self.canvas[row_idx, col_idx+1],
                                     pattern[row_idx-row, col_idx-col],
                                     pattern[row_idx-row, col_idx-col+1]
                                 ], axis=-1)
                         if sgm[row_idx, col_idx] and not sgm[row_idx, col_idx+1]:
-                            self.horizontal_seams[row_idx][col_idx][0] = \
-                                edge_weights[row_idx][col_idx][1]
-                            self.horizontal_seams[row_idx][col_idx][1:] = \
-                                np.concatenate([
+                            self.horizontal_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][1]
+                            self.horizontal_seams[row_idx][col_idx][1:] = np.concatenate([
                                     pattern[row_idx-row, col_idx-col],
                                     pattern[row_idx-row, col_idx-col+1],
                                     self.canvas[row_idx, col_idx],
@@ -368,8 +339,7 @@ class Graph():
 if __name__ == '__main__':   
     g = Graph(10, 10)
     g.init_graph(np.ones((5, 5, 3), np.int32)*2) 
-    nodes, edges, tedges = g.create_graph(
-        None, (2, 2, 5, 5, np.zeros((5, 5, 3)).astype(np.int32)))
+    nodes, edges, tedges = g.create_graph((2, 2, 5, 5, np.zeros((5, 5, 3)).astype(np.int32)))
     graph = maxflow.Graph[float]()
     nodes = graph.add_grid_nodes((g.h, g.w))
     for edge in edges:
