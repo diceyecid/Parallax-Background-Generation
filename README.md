@@ -1,6 +1,10 @@
 # Parallax-Background-Generation
-
 A parallax background generation method for 2D side-scrollers.
+
+[Add excerpts from Report here]
+
+## Video
+[SoonTM]
 
 ## Installation
 
@@ -115,22 +119,22 @@ To use the texture generation portion of the pipeline by itself, `graphCut.py` c
 ```bash
 python graphCut.py path_in path_out direction patch_factor mode height_out width_out
 ```
-`path_in` and `path_out` are the file paths, including file name and extention.
++ `path_in` and `path_out` are the file paths, including file name and extention.
 
-`direction` indicates if the texture generates only horizontally, or both horizontally and vertically.  
-+ Horizontal works best and is 0.  
-+ Bidirectional is 1.
++ `direction` indicates if the texture generates only horizontally, or both horizontally and vertically.  
+   + Horizontal works best and is `0`.  
+   + Bidirectional is `1`.
 
-`patch_factor` is used to choose the size of patches used during generation. 
-+ A value of 8 indicates a subpatch with 1/8 times the width of the input image for horizontal generation.  
-+ A value of 8 would indicate a subpatch with 1/8 times the width and height of the input image for bidirectional generation.
++ `patch_factor` is used to choose the size of patches used during generation. 
+   + A value of `8` indicates a subpatch with 1/8 times the width of the input image for horizontal generation.  
+   + A value of `8` would indicate a subpatch with 1/8 times the width and height of the input image for bidirectional generation.
 
-`mode` takes a value between 1 and 3 which relate to different methods of patch selection. 
-+ A value of 1 means the output is built placing subpatches in a random order.  
-+ A value of 2 means the output is built by placing subpatches row-by-row. 
-+ A value of 3 means the output is built using the entire input patch being placed row-by-row.
++ `mode` takes a value between 1 and 3 which relate to different methods of patch selection. 
+   + A value of `1` means the output is built placing subpatches in a random order.  
+   + A value of `2` means the output is built by placing subpatches row-by-row. 
+   + A value of `3` means the output is built using the entire input patch being placed row-by-row.
 
-`height_out` and `width_out` are in pixels and determine the output image dimensions.  `height_out` should match the input image height for horizontal generation.
++ `height_out` and `width_out` are in pixels and determine the output image dimensions.  `height_out` should match the input image height for horizontal generation.
 
 For example:
 ```bash
@@ -148,7 +152,7 @@ bash clean.sh
 
 ## Attribution
 
-+ Pixelization method was inspired from
++ Pixelization method inspired by
   [Convert Photo into Pixel Art using Python](https://towardsdatascience.com/convert-photo-into-pixel-art-using-python-d0b9bd235797)
   by Abhijith Chandradas
 
@@ -156,8 +160,7 @@ bash clean.sh
   [Dominant Color Extraction Dominance and Recoloring](https://github.com/srijannnd/Dominant-Color-Extraction-Dominance-and-Recoloring)
   by Srijan Anand
 
-+ Texture generation uses the Graphcut method from
++ Texture generation method from
   ["Graphcut Textures: Image and Video Synthesis Using Graph Cuts",  Kwatra et al., SIGGRAPH 2003](https://www.cc.gatech.edu/cpl/projects/graphcuttextures/)
-  implemented by
-  [Yezhen Cong](https://github.com/THU17cyz/GraphCut) &
-  [Niranjan Thakurdesai](https://github.com/niranjantdesai/image-blending-graphcuts)
+  + Implemented by [Yezhen Cong](https://github.com/THU17cyz/GraphCut) & [Niranjan Thakurdesai](https://github.com/niranjantdesai/image-blending-graphcuts)
++ Sample Photos by [Ricardo Chiarini](https://unsplash.com/photos/2VDa8bnLM8c), [Liu Sicheng](https://unsplash.com/photos/4-KqFyHKRdo), [Jim Josef](https://unsplash.com/photos/0spOq1mYtZw), and [Cedric VT](https://unsplash.com/photos/ua0SnGdN-m8) on [Unsplash](https://unsplash.com/)
