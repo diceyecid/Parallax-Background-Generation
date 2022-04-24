@@ -54,7 +54,6 @@ def pickColour( button, newColours, index ):
 # action bar action
 def action( window, resultColours, colours ):
     resultColours = colours[ : ]
-    print( resultColours )
     window.destroy()
 
     return
@@ -63,7 +62,7 @@ def action( window, resultColours, colours ):
 # main execution
 def startGUI( image, colours ):
     window = tk.Tk()
-    print( colours )
+    window.title( 'Recolouring image' )
 
     # display image
     im = getTkImage( image )
