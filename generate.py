@@ -129,7 +129,7 @@ def main():
         os.makedirs( args.output_dir )
 
     # pixelize images and save them to output directory
-    progressBar = tqdm( zip( images, imageSubpaths ), desc = 'Pixelizing', total = len( images ) )
+    progressBar = tqdm( zip( images, imageSubpaths ), desc = 'Generating pixelized background', total = len( images ) )
     for im, sp in progressBar:
         # pixelize image (part 1)
         result = pixelizeP1( im, args.n_colors, args.recolor, args.superpixel_size )
