@@ -20,7 +20,7 @@ A parallax background generation method for 2D side-scrollers.
 
 ## Usage
 
-### Parallax Background Generation
+### Parallax Pixel Art Background Generation
 
 Use `generate.py` to perform pixelized background texture generation.
 By default, it will transfer the input image(s) into pixel art style and
@@ -33,71 +33,58 @@ python generate.py --input ./samples
 ```
 
 Since there are many parameters that can be fine tuned to suit different images,
-it provides a command line interface with many options available.
+it provides a command line interface with many options available:
 
-```bash
-usage: generate.py [--help]
-                   --input INPUT
-                   [--output_dir OUTPUT_DIR]
-                   [--output_width_factor OUTPUT_WIDTH_FACTOR]
-                   [--output_height_factor OUTPUT_HEIGHT_FACTOR]
-                   [--output_width OUTPUT_WIDTH]
-                   [--output_height OUTPUT_HEIGHT]
-                   [--n_colors N_COLORS]
-                   [--recolor]
-                   [--superpixel_size SUPERPIXEL_SIZE]
-                   [--direction {0,1}]
-                   [--patch_factor PATCH_FACTOR]
-                   [--generation_mode {1,2,3}]
-```
++ `--help` or simply `-h`
+  shows a help message and exit.
 
-`--help` or simply `-h`
-shows a help message and exit.
++ `--input` or simply `-i`
+  specifies the input of a image or a directory with images. This is required.
 
-`--input` or simply `-i`
-specifies the input of a image or a directory with images. This is required.
++ `--output_dir` or simply `-o`
+  specifies the directory where resulting images are to be saved.
 
-`--output_dir` or simply `-o`
-specifies the directory where resulting images are to be saved.
++ `--output_width_factor`
+  specifies the scale factor to determine the width of resulting image(s).
 
-`--output_width_factor`
-specifies the scale factor to determine the width of resulting image(s).
++ `--output_height_factor`
+  specifies the scale factor to determine the height of resulting image(s).
 
-`--output_height_factor`
-specifies the scale factor to determine the height of resulting image(s).
++ `--output_width`
+  specifies the width of resulting image(s). (Setting this will ignore `output_width_factor`.)
 
-`--output_width`
-specifies the width of resulting image(s). (Setting this will ignore `output_width_factor`.)
++ `--output_height`
+  specifies the height of resulting image(s). (Setting this will ignore `output_height_factor`.)
 
-`--output_height`
-specifies the height of resulting image(s). (Setting this will ignore `output_height_factor`.)
++ `--n_colors`
+  speciies the number of dominate colours to be extracted as a palette for the image(s).
 
-`--n_colors`
-speciies the number of dominate colours to be extracted as a palette for the image(s).
++ `--recolor`
+  raises a flag option to turn on palette recolouring for input image(s).
 
-`--recolor`
-raises a flag option to turn on palette recolouring for input image(s).
++ `--superpixel_size`
+  specifies the size of a 'pixel' after pixelization.
 
-`--superpixel_size`
-specifies the size of a 'pixel' after pixelization.
++ `--direction`
+  specifies the direction of texture generation:
 
-`--direction`
-specifies the direction of texture generation:
+  + `0` for horizontal
+  + `1` for bi-directional
 
-+ `0` for horizontal
-+ `1` for bi-directional
++ `--patch_factor`
+  specifies the factor to determine size of patches used during generation.
+  See [below](#Graphcut-Texture-Generation) for more details
 
-`--patch_factor`
-specifies the factor to determine size of patches used during generation.
-See [below](#Graphcut-Texture-Generation) for more details
++ `--generation_mode`
+  specifies the mode for texture generation:
 
-`--generation_mode`
-specifies the mode for texture generation:
+  + `1` for global subpatch best matching
+  + `2` for row-by-row subpatch best matching
+  + `3` for row-by-row best matching
 
-+ `1` for global subpatch best matching
-+ `2` for row-by-row subpatch best matching
-+ `3` for row-by-row best matching
-
+Pixel art background involves many artistic choices to suit your preference,
+we encourage you to try experimenting different options yourself
+to generate more interesting results.
 Here is an example of using these options:
 
 ```bash
@@ -114,11 +101,13 @@ python generate.py \
     --generation_mode 2
 ```
 
-Please use the help command for an easy access to the explainations:
+You may use the help command for an easy access to the explainations:
 
 ```bash
 python generate.py --help
 ```
+
+Have fun! :D
 
 ### Graphcut Texture Generation
 
