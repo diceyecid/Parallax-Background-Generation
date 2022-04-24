@@ -4,13 +4,14 @@ import cv2
 import glob
 import argparse
 from tqdm import tqdm
-from pixelization import pixelize
+from graphCut import graphCut
+from graphEnums import GenDirection, GenMethod
+from pixelization import pixelize, pixelizeP1, pixelizeP2
 
 
 #---------- constants ----------#
 
 
-DIRECTIONS = [ 'horizontal', 'bi-directional' ]
 VALID_EXTENSIONS = [ 'png', 'jpg', 'jpeg' ]
 
 
@@ -48,8 +49,10 @@ def getArguments():
     parser.add_argument( '--superpixel_size', type = int, default = 3,
             help = 'the size of a \'pixel\' after pixelization' )
     
-    parser.add_argument( '--direction', type = str, default = DIRECTIONS[0], choices = DIRECTIONS,
-            help = 'the direction of texture generation' )
+    parser.add_argument( '--direction', type = int, default = 0, choices = [ 0, 1 ],
+            help =  'the direction of texture generation; ' +
+                    '0 for horizontal; ' + 
+                    '1 for bi-directional' )
     
     parser.add_argument( '--patch_factor', type = int, default = 8,
             help = 'the factor to determine size of patches used during generation' )
@@ -98,7 +101,7 @@ def getImages( path ):
 
 
 # determine output image width and height
-def getOutputSize( image, args ):
+def getOutputSize( image, args, downsized = False ):
     width, height = args.output_width, args.output_height
 
     if width is None:
@@ -106,6 +109,9 @@ def getOutputSize( image, args ):
 
     if height is None:
         height = image.shape[0] * args.output_height_factor
+
+    if downsized:
+        width, height = width // args.superpixel_size, height // args.superpixel_size 
 
     return width, height
 
@@ -125,12 +131,29 @@ def main():
     # pixelize images and save them to output directory
     progressBar = tqdm( zip( images, imageSubpaths ), desc = 'Pixelizing', total = len( images ) )
     for im, sp in progressBar:
-        # pixelize image
-        result = pixelize( im, args.n_colors, args.recolor, args.superpixel_size )
+        # pixelize image (part 1)
+        result = pixelizeP1( im, args.n_colors, args.recolor, args.superpixel_size )
+        # print( result.shape )
+        # cv2.imshow( 'pixelizeP1', result )
+        # cv2.waitKey( 0 )
 
         # texture generation
-        outputWidth, outputHeight = getOutputSize( im, args )
-        # result = graphCut( result, args.direction, args.patch_factor, args.generation_mode, outputWidth, outputHeight )
+        outputWidth, outputHeight = getOutputSize( im, args, downsized = True )
+        # print( GenDirection( args.direction ).name, args.patch_factor,
+                            # GenMethod( args.generation_mode ).name, outputHeight, outputWidth )
+        result = graphCut( result, GenDirection( args.direction ), args.patch_factor,
+                            GenMethod( args.generation_mode ), outputHeight, outputWidth )
+        # print( result.shape )
+        # cv2.imshow( 'graphCut', result )
+        # cv2.waitKey( 0 )
+
+        # pixelize image (part 2)
+        outputWidth, outputHeight = getOutputSize( im, args, downsized = False )
+        result = pixelizeP2( result, outputWidth, outputHeight )
+        # print( result.shape )
+        # cv2.imshow( 'pixelizeP2', result )
+        # cv2.waitKey( 0 )
+        # cv2.destroyAllWindows()
 
         # create subdirectories to match input directory structure if necessary
         saveDir = os.path.join( args.output_dir, os.path.dirname( sp ) )
