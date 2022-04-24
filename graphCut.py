@@ -36,7 +36,7 @@ def graphCut( image_in, direction = GenDirection.HORIZONAL, patchFactor = 8, mod
     # mode -> int value from 1 to 3, using the starter code
     # outputWidth, outputHeight -> outputHeight equals inputHeight for horizontal generation
 
-    if (h_out is 0) and (w_out is 0):
+    if (h_out == 0) and (w_out == 0):
         return image_in
 
     image_in = image_in.astype(np.int32)
