@@ -4,6 +4,9 @@ from sklearn.cluster import KMeans
 from recolourGUI import startGUI
 
 
+#---------- functions ----------# 
+
+
 # get palette colours using k-mean
 def getPalette( image, nColours ):
     # reshape image into 1-D array of pixels with input channels
@@ -52,7 +55,7 @@ def smoothenImage( image ):
     return result
 
 
-# pixelize by downsizing and upscaling
+# pixelation by downsizing and upscaling
 def pixelateImage( image, superpixelSize ):
     # get image dimention
     height, width, _ = image.shape
@@ -68,7 +71,29 @@ def pixelateImage( image, superpixelSize ):
     return result
 
 
-# main execution
+# pixelation part for downsizing image
+def pixelateDown( image, superpixelSize ):
+    # get image dimention
+    height, width, _ = image.shape
+
+    # downsize
+    downWidth = width // superpixelSize 
+    downHeight = height // superpixelSize 
+    downImage = cv2.resize( image, ( downWidth, downHeight ), interpolation = cv2.INTER_LINEAR  )
+    return downImage 
+
+
+# pixelation part for upscaling image
+def pixelateUp( image, outputWidth, outputHeight ):
+    # upscale
+    upImage = cv2.resize( image, ( outputWidth, outputHeight ), interpolation = cv2.INTER_NEAREST  )
+    return upImage
+
+
+#---------- main excutables ----------#
+
+
+# perform pixelization in one run
 def pixelize( image, nColours, recolour, superpixelSize ):
     colours, pixelMap = getPalette( image, nColours )
 
@@ -78,5 +103,27 @@ def pixelize( image, nColours, recolour, superpixelSize ):
     lessColourImage = reduceColour( image, colours, pixelMap )
     blurredImage = smoothenImage( lessColourImage )
     pixelizedImage = pixelateImage( blurredImage, superpixelSize )
+
+    return pixelizedImage
+
+
+# separate pixelization in two parts to fit texture generation
+
+# P1: preprocess image with palette recolouring & downsizing
+def pixelizeP1( image, nColours, recolour, superpixelSize ):
+    colours, pixelMap = getPalette( image, nColours )
+
+    if recolour:
+        colours = startGUI( image, colours )
+
+    lessColourImage = reduceColour( image, colours, pixelMap )
+    blurredImage = smoothenImage( lessColourImage )
+    pixelizedImage = pixelateDown( blurredImage, superpixelSize )
+
+    return pixelizedImage
+
+# P2: upscale the image to correct dimension
+def pixelizeP2( image, outputWidth, outputHeight ):
+    pixelizedImage = pixelateUp( image, outputWidth, outputHeight )
 
     return pixelizedImage
