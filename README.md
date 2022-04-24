@@ -23,7 +23,7 @@ A parallax background generation method for 2D side-scrollers.
 ### Graphcut Texture Generation
 To use the texture generation portion of the pipeline by itself, `graphCut.py` can be called directly with the following signature.
 ```bash
-python graphCut.py [path_in] [path_out] [direction] [patch_factor] [mode] [height_out] [width_out]
+python graphCut.py path_in path_out direction patch_factor mode height_out width_out
 ```
 `path_in` and `path_out` are the file paths, including file name and extention.
 
