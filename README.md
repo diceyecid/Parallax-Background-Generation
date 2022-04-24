@@ -25,7 +25,7 @@ To use the texture generation portion of the pipeline by itself, `graphCut.py` c
 ```bash
 python graphCut.py [path_in] [path_out] [direction] [patch_factor] [mode] [height_out] [width_out]
 ```
-`path_in` and `path_out` are the relative file paths, including file name and extention.
+`path_in` and `path_out` are the file paths, including file name and extention.
 
 `direction` indicates if the texture generates only horizontally, or both horizontally and vertically.  
 + Horizontal works best and is 0.  
