@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 from sys import stdout
 
+DEBUG_OUT = False
+
 def read_img(im_fn):
     im = cv2.imread(im_fn)
     if im is None:
@@ -28,3 +30,8 @@ def increment_status_message(counter):
     stdout.flush()
     counter += 1
     return counter
+
+def debug_out(string, *argv):
+    if DEBUG_OUT:
+        stdout.write(string % argv)
+        stdout.flush()
