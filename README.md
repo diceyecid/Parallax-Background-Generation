@@ -1,6 +1,10 @@
 # Parallax-Background-Generation
-
 A parallax background generation method for 2D side-scrollers.
+
+[Add excerpts from Report here]
+
+## Video
+[SoonTM]
 
 ## Installation
 
