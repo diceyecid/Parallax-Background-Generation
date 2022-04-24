@@ -6,6 +6,16 @@ import numpy as np
 from custom_io import debug_out, show_img, write_img
 from viz import plot_graph_2d
 
+USE_ALPHA = True
+CHANNELS = 4 if USE_ALPHA else 3
+CHANNELS_RGB = 3
+CHANNEL_SLICES = [
+    slice(0, CHANNELS_RGB), \
+    slice(1, 1+CHANNELS_RGB), \
+    slice(1+CHANNELS_RGB, 1+CHANNELS_RGB+CHANNELS_RGB), \
+    slice(1+2*CHANNELS_RGB, 1+2*CHANNELS_RGB+CHANNELS_RGB), \
+    slice(1+3*CHANNELS_RGB, 1+3*CHANNELS_RGB+CHANNELS_RGB)]
+
 INF = 1.0e8
 
 class Graph():
@@ -14,11 +24,11 @@ class Graph():
         self.grad_energy = True  # whether introduce grad into energy func
         self.w, self.h = w, h
         self.filled = np.zeros((self.h, self.w), np.int32)
-        self.canvas = np.zeros((self.h, self.w, 3), np.int32)
+        self.canvas = np.zeros((self.h, self.w, CHANNELS), np.int32)
         self.graph = maxflow.Graph[float]()
         self.node_ids = self.graph.add_grid_nodes((self.h, self.w))
-        self.vertical_seams = np.zeros((self.h-1, self.w, 13), np.float64)
-        self.horizontal_seams = np.zeros((self.h, self.w-1, 13), np.float64)
+        self.vertical_seams = np.zeros((self.h-1, self.w, CHANNELS_RGB*4+1), np.float64)
+        self.horizontal_seams = np.zeros((self.h, self.w-1, CHANNELS_RGB*4+1), np.float64)
 
     # start from left-top corner
     def init_graph(self, new_patch, new_pattern_size=None):
@@ -89,25 +99,21 @@ class Graph():
     # energy func
     def weight_fn(self, new_value, row_idx, col_idx, new_t, new_l, vertical, 
                   ord=2, eps=1e-8, old_value_1=None, old_value_2=None):
+        new_value = new_value[:,:, CHANNEL_SLICES[0]]
         # could specify old_value
         if old_value_1 is None:
-            old_value_1 = self.canvas[row_idx][col_idx]
+            old_value_1 = self.canvas[row_idx][col_idx][CHANNEL_SLICES[0]]
         if old_value_2 is None:
-            old_value_2 = self.canvas[row_idx+1][col_idx] if vertical \
-                else self.canvas[row_idx][col_idx+1]
+            old_value_2 = self.canvas[row_idx+1][col_idx][CHANNEL_SLICES[0]] if vertical else self.canvas[row_idx][col_idx+1][CHANNEL_SLICES[0]]
         ws = np.linalg.norm(old_value_1-new_value[row_idx-new_t][col_idx-new_l], ord=ord)
         if vertical:
-            wt = np.linalg.norm(
-                old_value_2-new_value[row_idx-new_t+1][col_idx-new_l], ord=ord)
+            wt = np.linalg.norm(old_value_2-new_value[row_idx-new_t+1][col_idx-new_l], ord=ord)
             grad_s = np.linalg.norm(old_value_1-old_value_2, ord=ord)
-            grad_t = np.linalg.norm(
-                new_value[row_idx-new_t][col_idx-new_l]-new_value[row_idx-new_t+1][col_idx-new_l], ord=ord)
+            grad_t = np.linalg.norm(new_value[row_idx-new_t][col_idx-new_l]-new_value[row_idx-new_t+1][col_idx-new_l], ord=ord)
         else:
-            wt = np.linalg.norm(
-                old_value_2-new_value[row_idx-new_t][col_idx-new_l+1], ord=ord)
+            wt = np.linalg.norm(old_value_2-new_value[row_idx-new_t][col_idx-new_l+1], ord=ord)
             grad_s = np.linalg.norm(old_value_1-old_value_2, ord=ord)
-            grad_t = np.linalg.norm(
-                new_value[row_idx-new_t][col_idx-new_l]-new_value[row_idx-new_t][col_idx-new_l+1], ord=ord)
+            grad_t = np.linalg.norm(new_value[row_idx-new_t][col_idx-new_l]-new_value[row_idx-new_t][col_idx-new_l+1], ord=ord)
         w = ws+wt
         # integrate grad into energy function
         if self.grad_energy:
@@ -136,14 +142,14 @@ class Graph():
                         tedges.append((node_count, 0, weight))
                         weight = self.weight_fn(
                             new_value, row_idx, col_idx, new_t, new_l, True, 
-                            old_value_1=self.vertical_seams[row_idx, col_idx, 1:4], 
-                            old_value_2=self.vertical_seams[row_idx, col_idx, 4:7])
+                            old_value_1=self.vertical_seams[row_idx, col_idx, CHANNEL_SLICES[1]], 
+                            old_value_2=self.vertical_seams[row_idx, col_idx, CHANNEL_SLICES[2]])
                         edges.append((self.node_ids[row_idx][col_idx],
                                       node_count, weight))
                         weight = self.weight_fn(
                             new_value, row_idx, col_idx, new_t, new_l, True,
-                            old_value_1=self.vertical_seams[row_idx, col_idx, 7:10],
-                            old_value_2=self.vertical_seams[row_idx, col_idx, 10:13])
+                            old_value_1=self.vertical_seams[row_idx, col_idx, CHANNEL_SLICES[3]],
+                            old_value_2=self.vertical_seams[row_idx, col_idx, CHANNEL_SLICES[4]])
                         edges.append((self.node_ids[row_idx+1][col_idx],
                                       node_count, weight))
                         node_count += 1
@@ -160,14 +166,14 @@ class Graph():
                         tedges.append((node_count, 0, weight))
                         weight = self.weight_fn(
                             new_value, row_idx, col_idx, new_t, new_l, False,
-                            old_value_1=self.horizontal_seams[row_idx, col_idx, 1:4],
-                            old_value_2=self.horizontal_seams[row_idx, col_idx, 4:7])
+                            old_value_1=self.horizontal_seams[row_idx, col_idx, CHANNEL_SLICES[1]],
+                            old_value_2=self.horizontal_seams[row_idx, col_idx, CHANNEL_SLICES[2]])
                         edges.append((self.node_ids[row_idx][col_idx],
                                       node_count, weight))
                         weight = self.weight_fn(
                             new_value, row_idx, col_idx, new_t, new_l, False,
-                            old_value_1=self.horizontal_seams[row_idx, col_idx, 7:10],
-                            old_value_2=self.horizontal_seams[row_idx, col_idx, 10:13])
+                            old_value_1=self.horizontal_seams[row_idx, col_idx, CHANNEL_SLICES[3]],
+                            old_value_2=self.horizontal_seams[row_idx, col_idx, CHANNEL_SLICES[4]])
                         edges.append((self.node_ids[row_idx][col_idx+1],
                                       node_count, weight))
                         node_count += 1
@@ -267,10 +273,8 @@ class Graph():
         row, col, h, w, pattern = pattern_info
         nodes, edges, tedges = self.create_graph((row, col, h, w, pattern))
         graph = maxflow.Graph[float]()
-        final_nodes = graph.add_nodes(len(nodes)+self.h*self.w)
+        graph.add_nodes(len(nodes)+self.h*self.w)
         edge_weights = np.zeros((self.h, self.w, 2))
-
-        debug_out("pattern channels: %i, graph channels: %i\n", pattern.shape[2], self.canvas.shape[2])
 
         for edge in edges:
             graph.add_edge(edge[0], edge[1], edge[2], edge[2])
@@ -281,48 +285,47 @@ class Graph():
                 edge_weights[row_, col_, 0] = edge[2]
         for tedge in tedges:
             graph.add_tedge(tedge[0], tedge[1], tedge[2])
-
+        graph.maxflow()
         sgm = graph.get_grid_segments(self.node_ids)
         for row_idx in range(row, row+h):
             for col_idx in range(col, col+w):
 
                 # update the old seams
                 if self.consider_old_seams:
-                    debug_out("pattern channels: %i, graph channels: %i\n", pattern.shape[2], self.canvas.shape[2])
                     if row_idx < row+h-1 and self.filled[row_idx, col_idx] and self.filled[row_idx+1, col_idx]:
                         if not sgm[row_idx, col_idx] and sgm[row_idx+1, col_idx]:
                             self.vertical_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][0]
                             self.vertical_seams[row_idx][col_idx][1:] = np.concatenate([
-                                    self.canvas[row_idx, col_idx],
-                                    self.canvas[row_idx+1, col_idx],
-                                    pattern[row_idx-row, col_idx-col],
-                                    pattern[row_idx-row+1, col_idx-col]
+                                    self.canvas[row_idx, col_idx, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx+1, col_idx, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row, col_idx-col, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row+1, col_idx-col, CHANNEL_SLICES[0]]
                                 ], axis=-1)
                         if sgm[row_idx, col_idx] and not sgm[row_idx+1, col_idx]:
                             self.vertical_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][0]
                             self.vertical_seams[row_idx][col_idx][1:] = np.concatenate([
-                                    pattern[row_idx-row, col_idx-col],
-                                    pattern[row_idx-row+1, col_idx-col],
-                                    self.canvas[row_idx, col_idx],
-                                    self.canvas[row_idx+1, col_idx],
+                                    pattern[row_idx-row, col_idx-col, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row+1, col_idx-col, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx, col_idx, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx+1, col_idx, CHANNEL_SLICES[0]],
                                 ], axis=-1)
                     
                     if col_idx < col+w-1 and self.filled[row_idx, col_idx] and self.filled[row_idx, col_idx+1]:
                         if not sgm[row_idx, col_idx] and sgm[row_idx, col_idx+1]:
                             self.horizontal_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][1]
                             self.horizontal_seams[row_idx][col_idx][1:] = np.concatenate([
-                                    self.canvas[row_idx, col_idx],
-                                    self.canvas[row_idx, col_idx+1],
-                                    pattern[row_idx-row, col_idx-col],
-                                    pattern[row_idx-row, col_idx-col+1]
+                                    self.canvas[row_idx, col_idx, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx, col_idx+1, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row, col_idx-col, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row, col_idx-col+1, CHANNEL_SLICES[0]]
                                 ], axis=-1)
                         if sgm[row_idx, col_idx] and not sgm[row_idx, col_idx+1]:
                             self.horizontal_seams[row_idx][col_idx][0] = edge_weights[row_idx][col_idx][1]
                             self.horizontal_seams[row_idx][col_idx][1:] = np.concatenate([
-                                    pattern[row_idx-row, col_idx-col],
-                                    pattern[row_idx-row, col_idx-col+1],
-                                    self.canvas[row_idx, col_idx],
-                                    self.canvas[row_idx, col_idx+1]
+                                    pattern[row_idx-row, col_idx-col, CHANNEL_SLICES[0]],
+                                    pattern[row_idx-row, col_idx-col+1, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx, col_idx, CHANNEL_SLICES[0]],
+                                    self.canvas[row_idx, col_idx+1, CHANNEL_SLICES[0]]
                                 ], axis=-1)
                     
                 if not self.filled[row_idx, col_idx] or self.filled[row_idx, col_idx] and sgm[row_idx, col_idx]:
@@ -338,8 +341,8 @@ class Graph():
 
 if __name__ == '__main__':   
     g = Graph(10, 10)
-    g.init_graph(np.ones((5, 5, 3), np.int32)*2) 
-    nodes, edges, tedges = g.create_graph((2, 2, 5, 5, np.zeros((5, 5, 3)).astype(np.int32)))
+    g.init_graph(np.ones((5, 5, CHANNELS), np.int32)*2) 
+    nodes, edges, tedges = g.create_graph((2, 2, 5, 5, np.zeros((5, 5, CHANNELS)).astype(np.int32)))
     graph = maxflow.Graph[float]()
     nodes = graph.add_grid_nodes((g.h, g.w))
     for edge in edges:

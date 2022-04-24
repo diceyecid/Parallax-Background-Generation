@@ -4,14 +4,14 @@ import time
 import numpy as np
 import cv2
 
-from graph import Graph
+from graph import USE_ALPHA, Graph
 from custom_io import debug_out, increment_status_message
 from graphEnums import GenDirection, GenMethod
 
 def main():
     path_in = sys.argv[1] if len(sys.argv) > 1 else quit()
     path_out = sys.argv[2] if len(sys.argv) > 2 else "./"
-    pattern = cv2.imread(path_in)
+    pattern = cv2.imread(path_in, cv2.IMREAD_UNCHANGED) if USE_ALPHA else cv2.imread(path_in)
     h, w = pattern.shape[:2]
 
     direction = GenDirection(int(sys.argv[3])) if len(sys.argv) > 3 else GenDirection.HORIZONAL
