@@ -1,0 +1,2 @@
+python main.py [path_in] [path_out] [mode] [patch_factor] [direction] [height_out] [width_out]
+python main.py input\liu3cropped.png output\liuTest1.png 0 4 1 300 2000
