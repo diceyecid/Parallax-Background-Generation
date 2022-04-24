@@ -148,7 +148,7 @@ bash clean.sh
 
 ## Attribution
 
-+ Pixelization method was inspired from
++ Pixelization method inspired by
   [Convert Photo into Pixel Art using Python](https://towardsdatascience.com/convert-photo-into-pixel-art-using-python-d0b9bd235797)
   by Abhijith Chandradas
 
