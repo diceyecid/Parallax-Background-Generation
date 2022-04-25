@@ -1,5 +1,8 @@
 # Parallax-Background-Generation
+
 A parallax background generation method for 2D side-scrollers.
+
+## Description
 
 Art assets for games can be time intensive to produce.
 Whether it's a full 3D world, or simpler 2D background, creating good looking assets takes time and skills that are not always readily available.
@@ -12,6 +15,8 @@ We propose the use of computational photography to produce layered 2D background
 In our pipeline, the user provides segmented photographic input, instead of creating traditional art, and receives game-ready assets.
 Most time spent is computational run-time, and frees up developers for other work.
 Photograph inputs are used to move the artistic skill requirement away from the developer as well.
+
+## Method
 
 Our method is as follows:
 + Depth estimation informed interactive segmentation. (We used the GIMP magic wand.)
