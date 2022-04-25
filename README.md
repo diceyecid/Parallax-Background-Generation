@@ -187,4 +187,4 @@ bash clean.sh
 + Texture generation method from
   ["Graphcut Textures: Image and Video Synthesis Using Graph Cuts",  Kwatra et al., SIGGRAPH 2003](https://www.cc.gatech.edu/cpl/projects/graphcuttextures/)
   + Implemented by [Yezhen Cong](https://github.com/THU17cyz/GraphCut) & [Niranjan Thakurdesai](https://github.com/niranjantdesai/image-blending-graphcuts)
-+ Sample Photos by [Ricardo Chiarini](https://unsplash.com/photos/2VDa8bnLM8c), [Liu Sicheng](https://unsplash.com/photos/4-KqFyHKRdo), [Jim Josef](https://unsplash.com/photos/0spOq1mYtZw), and [Cedric VT](https://unsplash.com/photos/ua0SnGdN-m8) on [Unsplash](https://unsplash.com/)
++ Photos used in demo by [Ricardo Chiarini](https://unsplash.com/photos/2VDa8bnLM8c), [Liu Sicheng](https://unsplash.com/photos/4-KqFyHKRdo), [Jim Josef](https://unsplash.com/photos/0spOq1mYtZw), and [Cedric VT](https://unsplash.com/photos/ua0SnGdN-m8) on [Unsplash](https://unsplash.com/)
