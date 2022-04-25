@@ -50,7 +50,7 @@ def getArguments():
             help =  'the size of a \'pixel\' after pixelization' )
 
     parser.add_argument( '--pixelization_only', action = 'store_true', default = False,
-            help =  'the option to run only pixelization and recolouring part' )
+            help =  'the option to run only the pixelization and recolouring part' )
     
     parser.add_argument( '--direction', type = int, default = 0, choices = [ 0, 1 ],
             help =  'the direction of texture generation; ' +
@@ -65,6 +65,9 @@ def getArguments():
                     '1 for global subpatch best matching; ' + 
                     '2 for row-by-row subpatch best matching; ' +
                     '3 for row-by-row best matching' )
+
+    parser.add_argument( '--generation_only', action = 'store_true', default = False,
+            help =  'the option to run only the Graphcut generation part' )
     
     return parser.parse_args()
 
@@ -138,31 +141,25 @@ def main():
         if args.pixelization_only:
             result = pixelize( im, args.n_colors, args.recolor, args.superpixel_size )
 
+        # generation only
+        if args.generation_only:
+            outputWidth, outputHeight = getOutputSize( im, args, downsized = False )
+            result = graphCut( im, GenDirection( args.direction ), args.patch_factor,
+                                GenMethod( args.generation_mode ), outputHeight, outputWidth )
+
         # pixelization and generation
         else:
             # pixelize image (part 1)
             result = pixelizeP1( im, args.n_colors, args.recolor, args.superpixel_size )
-            # print( result.shape )
-            # cv2.imshow( 'pixelizeP1', result )
-            # cv2.waitKey( 0 )
 
             # texture generation
             outputWidth, outputHeight = getOutputSize( im, args, downsized = True )
-            # print( GenDirection( args.direction ).name, args.patch_factor,
-                                # GenMethod( args.generation_mode ).name, outputHeight, outputWidth )
             result = graphCut( result, GenDirection( args.direction ), args.patch_factor,
                                 GenMethod( args.generation_mode ), outputHeight, outputWidth )
-            # print( result.shape )
-            # cv2.imshow( 'graphCut', result )
-            # cv2.waitKey( 0 )
 
             # pixelize image (part 2)
             outputWidth, outputHeight = getOutputSize( im, args, downsized = False )
             result = pixelizeP2( result, outputWidth, outputHeight )
-            # print( result.shape )
-            # cv2.imshow( 'pixelizeP2', result )
-            # cv2.waitKey( 0 )
-            # cv2.destroyAllWindows()
 
         # create subdirectories to match input directory structure if necessary
         saveDir = os.path.join( args.output_dir, os.path.dirname( sp ) )
