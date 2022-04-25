@@ -91,6 +91,11 @@ it provides a command line interface with many options available:
 + `--superpixel_size`
   specifies the size of a 'pixel' after pixelization.
 
++ `--pixelization_only`
+  raises a flag option to run only the pixelization and recolouring part.
+  This will not take the output width and height options and Graphcut generation
+  options into account.
+
 + `--direction`
   specifies the direction of texture generation:
 
@@ -107,6 +112,10 @@ it provides a command line interface with many options available:
   + `1` for global subpatch best matching
   + `2` for row-by-row subpatch best matching
   + `3` for row-by-row best matching
+
++ `--generation_only`
+  raises a flag option to run only the Graphcut generation part.
+  This will not take the pixelization and recolouring options into account.
 
 Pixel art background involves many artistic choices to suit your preference,
 we encourage you to try experimenting different options yourself
