@@ -1,10 +1,32 @@
 # Parallax-Background-Generation
 A parallax background generation method for 2D side-scrollers.
 
-[Add excerpts from Report here]
+Art assets for games can be time intensive to produce.
+Whether it's a full 3D world, or simpler 2D background, creating good looking assets takes time and skills that are not always readily available.
+Time can be saved by using repeating assets, but clear repetition hurts immersion. 
+Procedural generation techniques can help make repetition less uniform, but doesn't remove it entirely.
+Both cases leave noticeable levels of repetition in the world, and require significant time and skill investments to produce.
+Video game developers in hobby, game jam, or early prototyping situations may not have access to the required time and skill.
+
+We propose the use of computational photography to produce layered 2D backgrounds without the need for significant artist time or skill.
+In our pipeline, the user provides segmented photographic input, instead of creating traditional art, and receives game-ready assets.
+Most time spent is computational run-time, and frees up developers for other work.
+Photograph inputs are used to move the artistic skill requirement away from the developer as well.
+
+Our method is as follows:
++ Depth estimation informed interactive segmentation. (We used the GIMP magic wand.)
++ Palette simplification and editing through k-means colour clustering.
++ Graphcut texture generation to extend individual layers to desired lengths.
++ Optionally filtered down-scaling before generation and up-scaling after to produce a pixelated style.
+
+(References at end of README)
 
 ## Video
-[SoonTM]
+<p align="center">
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=dQw4w9WgXcQ
+" target="_blank"><img src="http://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width=80% height=auto border="10" /></a>
+</p>
 
 ## Installation
 
@@ -151,7 +173,9 @@ bash clean.sh
 ```
 
 ## Attribution
-
++ Depth Estimation method and implementation from
+  ["Boosting Monocular Depth Estimation Models to High-Resolution via Content-Adaptive Multi-Resolution Merging", Miangoleh et al., CVPR 2021](https://github.com/compphoto/BoostingMonocularDepth)
+  
 + Pixelization method inspired by
   [Convert Photo into Pixel Art using Python](https://towardsdatascience.com/convert-photo-into-pixel-art-using-python-d0b9bd235797)
   by Abhijith Chandradas
