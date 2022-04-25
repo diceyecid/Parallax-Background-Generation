@@ -100,8 +100,14 @@ def getImages( path ):
     # there is only one image inputed
     else:
         im = cv2.imread( path, cv2.IMREAD_UNCHANGED )
-        images.append( im )
-        imageSubpaths.append( os.path.basename( path ) )
+
+        # if image does not exist, log and skip this image
+        if im is None:
+            print( f'{ path } does not exist' )
+
+        else:
+            images.append( im )
+            imageSubpaths.append( os.path.basename( path ) )
 
     return images, imageSubpaths
 
@@ -142,7 +148,7 @@ def main():
             result = pixelize( im, args.n_colors, args.recolor, args.superpixel_size )
 
         # generation only
-        if args.generation_only:
+        elif args.generation_only:
             outputWidth, outputHeight = getOutputSize( im, args, downsized = False )
             result = graphCut( im, GenDirection( args.direction ), args.patch_factor,
                                 GenMethod( args.generation_mode ), outputHeight, outputWidth )
