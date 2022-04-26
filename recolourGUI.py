@@ -41,7 +41,7 @@ def pickColour( button, newColours, index ):
 
     if colour is not None:
         # newColours is passed by reference, save picked colour in it
-        newColours[ index ][ : 3 ] = colour
+        newColours[ index ][ : 3 ] = colour[ :: -1 ]
 
         # replace on colour block on button
         cBlock = createColourBlock( colour[ :: -1 ] )
