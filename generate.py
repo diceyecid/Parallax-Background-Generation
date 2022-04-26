@@ -117,10 +117,10 @@ def getOutputSize( image, args, downsized = False ):
     width, height = args.output_width, args.output_height
 
     if width is None:
-        width = image.shape[1] * args.output_width_factor
+        width = int( image.shape[1] * args.output_width_factor )
 
     if height is None:
-        height = image.shape[0] * args.output_height_factor
+        height = int( image.shape[0] * args.output_height_factor )
 
     if downsized:
         width, height = width // args.superpixel_size, height // args.superpixel_size 
